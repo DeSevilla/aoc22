@@ -1,0 +1,1 @@
+little advent of code stuff for 2022, mostly haskell
