@@ -5,6 +5,7 @@ import Data.Either (fromRight)
 import Data.Map (Map, fromList, lookup, insertWith, insert, empty, elems, toList)
 import Control.Exception (assert)
 import Data.List (sort)
+import GHC.IO (unsafePerformIO)
 
 data Monkey = Monkey {mId :: Int, oper :: Int -> Int, divisor :: Int, nextTrue :: Int, nextFalse :: Int}
 type ItemState = Map Int (Int, [Int])
@@ -95,7 +96,7 @@ appendToItems new item state = case Data.Map.lookup new state of
 
 runMonkey :: ItemState -> Monkey -> ItemState
 runMonkey state m@Monkey{mId=mid, oper=op} = case Data.Map.lookup mid state of
-    Just (count, x:xs) -> let newWorry = op x `mod` 13*17*19*23 in
+    Just (count, x:xs) -> let newWorry = op x `mod` (2*3*5*7*11*13*17*19*23) in
         let state' = appendToItems (getNext newWorry m) newWorry (insert mid (count+1, xs) state) in
             runMonkey state' m
     Just (count, []) -> state
@@ -104,8 +105,8 @@ runMonkey state m@Monkey{mId=mid, oper=op} = case Data.Map.lookup mid state of
 runRounds :: ItemState -> [Monkey] -> Int -> IO ItemState
 runRounds st ms i
     | i > 0 = do
-        if (0) `mod` 1000 == 0 then print i else putStr ""
-        if (1) `mod` 1000 == 1 then putStrLn . showWorries $ st else putStr ""
+        if (10000 - i) `mod` 1000 == 0 then print i else putStr ""
+        if (10000 - i) `mod` 1000 == 1 then putStrLn . showWorries $ st else putStr ""
         runRounds (foldl runMonkey st ms) ms (i-1) 
     | i <= 0 = putStrLn "DONE" >> return st
 runRounds st ms i = putStrLn "WHAT THE FUCK" >> print st >> print ms >> print i >> return st
@@ -131,7 +132,7 @@ main = do
     let itemState = fromList . map startCount . mapToFst mId $ completed
     let monkeys = map fst completed
     print monkeys
-    finalState <- runRounds itemState monkeys 1
+    finalState <- runRounds itemState monkeys 10000
     putStrLn . showWorries $ finalState
     let throwCounts = map fst . elems $ finalState
     print throwCounts
